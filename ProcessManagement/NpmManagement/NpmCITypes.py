@@ -42,9 +42,9 @@ class NpmCiSuccessResponse:
 
 class DeprecatedPackage:
     def __init__(self,
-                name,
-                version,
-                description
+                 name,
+                 version,
+                 description
                  ):
         self.name: str = name
         self.version: str = version
@@ -61,9 +61,9 @@ class NpmCiErrorResponse:
         all_rows = data.splitlines()
         for row in all_rows:
             words = row.split(' ')
-            deprecated = words[2]
+            could_be_deprecated = words[2]
 
-            if (deprecated == 'deprecated'):
+            if (could_be_deprecated == 'deprecated'):
                 name_and_version = words[3].split('@')
                 package_name = name_and_version[0]
                 version = name_and_version[1].split(':')[0]
@@ -79,3 +79,10 @@ class NpmCiResponse:
     def __init__(self, successResponse: NpmCiSuccessResponse, errorResponse: NpmCiErrorResponse):
         self.successResponse = successResponse
         self.errorResponse = errorResponse
+
+
+class NpmError(BaseException):
+    def __init__(self, data: json):
+        self.code: str = data["code"]
+        self.summary: str = data['summary'].replace('\n', ' ')
+        self.detail: str = data["detail"]

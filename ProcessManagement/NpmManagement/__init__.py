@@ -1,7 +1,7 @@
 import json
 
 from ProcessManagement import run_shell_process
-from ProcessManagement.NpmManagement.NpmCITypes import NpmCiSuccessResponse, NpmCiErrorResponse, NpmCiResponse
+from ProcessManagement.NpmManagement.NpmCITypes import NpmCiSuccessResponse, NpmCiErrorResponse, NpmCiResponse, NpmError
 
 
 async def npm_i(path: str, folder: str):
@@ -10,8 +10,13 @@ async def npm_i(path: str, folder: str):
 
 async def npm_ci(path: str, folder: str) -> NpmCiResponse:
     response = await run_shell_process("npm ci --prefix " + path + folder + " --json")
-    sucess_output = json.loads(response.success_output)
+    success_output = json.loads(response.success_output)
 
-    success_response: NpmCiSuccessResponse = NpmCiSuccessResponse(sucess_output)
-    error_response: NpmCiErrorResponse = NpmCiErrorResponse(response.error_output)
+    try:
+        success_response: NpmCiSuccessResponse = NpmCiSuccessResponse(success_output)
+        error_response: NpmCiErrorResponse = NpmCiErrorResponse(response.error_output)
+    except BaseException:
+        error = json.loads(response.success_output)
+        raise NpmError(error["error"])
+
     return NpmCiResponse(success_response, error_response)
