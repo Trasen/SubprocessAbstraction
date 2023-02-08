@@ -81,8 +81,3 @@ class NpmCiResponse:
         self.errorResponse = errorResponse
 
 
-class NpmError(BaseException):
-    def __init__(self, data: json):
-        self.code: str = data["code"]
-        self.summary: str = data['summary'].replace('\n', ' ')
-        self.detail: str = data["detail"]

@@ -1,25 +1,37 @@
 import asyncio
 from asyncio.subprocess import Process
 
-
-class ProcessResponse:
-    def __init__(self, success_output: str, error_output: str):
-        self.success_output = success_output
-        self.error_output = error_output
+from ProcessManagement import ProcessResponse
+from ProcessManagement.ProcessResponse import ProcessResponse
+from ProcessManagement.ShellProcessExceptions import ShellProcessException, EmptyCommand, NonRecognizeableCommand
 
 
-async def extract_stdout_and_err_as_string(process: Process) -> ProcessResponse:
+async def extract_process_response(process: Process) -> ProcessResponse:
     response = await process.communicate()
 
-    success_output = response[0].decode('utf-8')
-    error_output = response[1].decode('utf-8')
+    return_code = process.returncode
+    success_output = response[0]
+    error_output = response[1]
 
-    return ProcessResponse(success_output, error_output)
+    return ProcessResponse(success_output, error_output, return_code)
 
 
 async def run_shell_process(command: str) -> ProcessResponse:
+    if command == '':
+        raise EmptyCommand()
+
     result = await asyncio.create_subprocess_shell(command,
                                                    stdout=asyncio.subprocess.PIPE,
-                                                   stderr=asyncio.subprocess.PIPE)
+                                                   stderr=asyncio.subprocess.PIPE,
+                                                   )
 
-    return await extract_stdout_and_err_as_string(result)
+    process_response = await extract_process_response(result)
+
+    if process_response.return_code == 1:
+        if process_response.error_output.__contains__(b"is not recognized as an internal or external command"):
+            raise NonRecognizeableCommand(command)
+        else:
+            raise ShellProcessException(process_response)
+
+    return process_response
+
