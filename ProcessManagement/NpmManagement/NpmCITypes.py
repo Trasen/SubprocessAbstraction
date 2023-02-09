@@ -30,7 +30,7 @@ class Audit:
         self.dependencies: Dependencies = Dependencies(json_data['dependencies'])
 
 
-class NpmCiSuccessResponse:
+class NpmInstallSuccessResponse:
     def __init__(self, json_data: json):
         self.added: int = json_data["added"]
         self.removed: int = json_data["removed"]
@@ -51,7 +51,7 @@ class DeprecatedPackage:
         self.description: str = description
 
 
-class NpmCiErrorResponse:
+class NpmInstallErrorResponse:
     def __init__(self,
                  data: str
                  ):
@@ -75,9 +75,39 @@ class NpmCiErrorResponse:
                 self.deprecated_packages.append(DeprecatedPackage(package_name, version, description))
 
 
-class NpmCiResponse:
-    def __init__(self, successResponse: NpmCiSuccessResponse, errorResponse: NpmCiErrorResponse):
+
+
+class NpmInstallResponse:
+    def __init__(self, successResponse: NpmInstallSuccessResponse, errorResponse: NpmInstallErrorResponse):
         self.successResponse = successResponse
         self.errorResponse = errorResponse
 
 
+class NpmAuditVulnerability:
+    def __init__(self, data:json):
+        self.name: str = data["name"]
+        self.severity: str = data["severity"]
+        self.isDirect: bool = data["isDirect"]
+        self.via: json = data["via"] # This can be basically anything, so for now just gonna dump the json data stored in via
+        self.effects: [str] = data["effects"]
+        self.range: str = data["range"]
+        self.nodes: [str] = data["nodes"]
+        self.fixAvailable: bool = data["fixAvailable"]
+
+
+class NpmAuditMetadata:
+    def __init__(self, data: json):
+        self.dependencies:Dependencies = data["dependencies"]
+        self.vulnerabilities:Vulnerabilities = data["vulnerabilities"]
+
+
+class NpmAuditResponse:
+    def __init__(self, data: json):
+        self.auditReportVersion: int = data["auditReportVersion"]
+
+        self.vulnerabilities: [NpmAuditVulnerability] = []
+        vulnerabilities = data["vulnerabilities"]
+        for vuln in vulnerabilities:
+            self.vulnerabilities.append(NpmAuditVulnerability(vulnerabilities[vuln]))
+
+        self.metadata: NpmAuditMetadata = NpmAuditMetadata(data["metadata"])

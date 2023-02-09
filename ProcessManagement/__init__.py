@@ -16,7 +16,7 @@ async def extract_process_response(process: Process) -> ProcessResponse:
     return ProcessResponse(success_output, error_output, return_code)
 
 
-async def run_shell_process(command: str) -> ProcessResponse:
+async def run_shell_process(command: str, process_returns_code_1_even_though_sucess: bool) -> ProcessResponse:
     if command == '':
         raise EmptyCommand()
 
@@ -27,7 +27,7 @@ async def run_shell_process(command: str) -> ProcessResponse:
 
     process_response = await extract_process_response(result)
 
-    if process_response.return_code == 1:
+    if process_response.return_code == 1 and not process_returns_code_1_even_though_sucess:
         if process_response.error_output.__contains__(b"is not recognized as an internal or external command"):
             raise NonRecognizeableCommand(command)
         else:

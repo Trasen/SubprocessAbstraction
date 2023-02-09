@@ -32,7 +32,7 @@ def _get_all_npm_errors() -> [str, NpmError]:
     return errors
 
 
-error_dictionary: [str, BaseException] = _get_all_npm_errors()
+error_dictionary: [str, NpmError] = _get_all_npm_errors()
 
 
 def find_error(data: json, raw_text: str) -> NpmError or None:
@@ -52,7 +52,7 @@ def find_error(data: json, raw_text: str) -> NpmError or None:
         summary = raw_text
     try:
         error = error_dictionary[code](summary)
-    except BaseException:
-        pass
+    except KeyError:
+        raise NpmError(data, raw_text)
 
     return error
