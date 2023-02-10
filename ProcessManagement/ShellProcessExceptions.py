@@ -3,7 +3,7 @@ from ProcessManagement import ProcessResponse
 
 class BaseShellProcessException(BaseException):
     def __init__(self, reason: str):
-        super(ShellProcessException, self).__init__(reason)
+        super(BaseShellProcessException, self).__init__(reason)
         self.return_code: int = 1
         pass
 
