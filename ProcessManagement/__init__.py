@@ -2,11 +2,11 @@ import asyncio
 from asyncio.subprocess import Process
 
 from ProcessManagement import ProcessResponse
-from ProcessManagement.ProcessResponse import ProcessResponse
+from ProcessManagement.ProcessResponse import ProcessResponse, ShellProcessCommand
 from ProcessManagement.ShellProcessExceptions import ShellProcessException, EmptyCommand, NonRecognizeableCommand
 
 
-async def extract_process_response(process: Process, command: str) -> ProcessResponse:
+async def extract_process_response(process: Process, command: ShellProcessCommand) -> ProcessResponse:
     response = await process.communicate()
 
     return_code = process.returncode
@@ -16,23 +16,21 @@ async def extract_process_response(process: Process, command: str) -> ProcessRes
     return ProcessResponse(command, success_output, error_output, return_code)
 
 
-async def run_shell_process(command: str, process_returns_code_1_on_success: bool = False) -> ProcessResponse:
+async def run_shell_process(command: ShellProcessCommand, process_returns_code_1_even_though_success: bool = False) -> ProcessResponse:
     if command == '':
         raise EmptyCommand()
 
-    result = await asyncio.create_subprocess_shell(command,
+    result = await asyncio.create_subprocess_shell(command.combine(),
                                                    stdout=asyncio.subprocess.PIPE,
                                                    stderr=asyncio.subprocess.PIPE,
                                                    )
 
     process_response = await extract_process_response(result, command)
 
-    if process_response.return_code == 1 and not process_returns_code_1_on_success:
+    if process_response.return_code > 0 and not process_returns_code_1_even_though_success:
         if process_response.error_output.__contains__(b"is not recognized as an internal or external command"):
-            raise NonRecognizeableCommand(command)
+            raise NonRecognizeableCommand(command.command)
         else:
             raise ShellProcessException(process_response)
 
     return process_response
-
-

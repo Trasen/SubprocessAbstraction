@@ -1,12 +1,22 @@
 import json
 
 
-class ProcessResponse:
+class ShellProcessCommand:
+    def __init__(self, application: str, command: str, args: [str], trailing_flags: [str]):
+        self.application: str = application
+        self.command: str = command
+        self.args: [str] = args
+        self.trailing_flags: [str] = trailing_flags
 
+    def combine(self) -> str:
+        return self.application + " " + self.command + " " + " ".join(self.args) + " " + " ".join(self.trailing_flags)
+
+
+class ProcessResponse:
     default_decoding_format = "utf-8"
 
-    def __init__(self, command: str, success_output: bytes, error_output: bytes, return_code: int):
-        self.command = command
+    def __init__(self, original_command: ShellProcessCommand, success_output: bytes, error_output: bytes, return_code: int):
+        self.command = original_command
         self.return_code: int = return_code
         self.success_output: bytes = success_output
         self.error_output: bytes = error_output
