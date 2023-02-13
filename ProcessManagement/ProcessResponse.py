@@ -5,7 +5,8 @@ class ProcessResponse:
 
     default_decoding_format = "utf-8"
 
-    def __init__(self, success_output: bytes, error_output: bytes, return_code: int):
+    def __init__(self, command: str, success_output: bytes, error_output: bytes, return_code: int):
+        self.command = command
         self.return_code: int = return_code
         self.success_output: bytes = success_output
         self.error_output: bytes = error_output
