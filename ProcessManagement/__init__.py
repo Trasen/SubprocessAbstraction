@@ -3,7 +3,7 @@ from asyncio.subprocess import Process
 
 from ProcessManagement import ProcessResponse
 from ProcessManagement.ProcessResponse import ProcessResponse, ShellProcessCommand
-from ProcessManagement.ShellProcessExceptions import ShellProcessException, EmptyCommand, NonRecognizeableCommand
+from ProcessManagement.ShellProcessExceptions import EmptyCommand, NonRecognizableCommand, BaseShellProcessException
 
 
 async def extract_process_response(process: Process, command: ShellProcessCommand) -> ProcessResponse:
@@ -17,7 +17,7 @@ async def extract_process_response(process: Process, command: ShellProcessComman
 
 
 async def run_shell_process(command: ShellProcessCommand, process_returns_code_1_even_though_success: bool = False) -> ProcessResponse:
-    if command == '':
+    if command.command == '':
         raise EmptyCommand()
 
     result = await asyncio.create_subprocess_shell(command.combine(),
@@ -29,8 +29,8 @@ async def run_shell_process(command: ShellProcessCommand, process_returns_code_1
 
     if process_response.return_code > 0 and not process_returns_code_1_even_though_success:
         if process_response.error_output.__contains__(b"is not recognized as an internal or external command"):
-            raise NonRecognizeableCommand(command.command)
+            raise NonRecognizableCommand(command.command)
         else:
-            raise ShellProcessException(process_response)
+            raise BaseShellProcessException(command, process_response)
 
     return process_response
