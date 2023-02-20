@@ -2,14 +2,14 @@
 from ProcessManagement import run_shell_process, ShellProcessCommand, BaseShellProcessException
 from ProcessManagement.NpmManagement.NpmCITypes import NpmInstallSuccessResponse, NpmInstallErrorResponse, \
     NpmInstallResponse, NpmAuditResponse
-from ProcessManagement.NpmManagement.NPMExceptions import NpmError, find_error
+from ProcessManagement.NpmManagement.NPMExceptions import NpmException, find_exception
 
 
 async def npm(command: ShellProcessCommand, process_returns_code_1_even_though_success: bool = False):
     try:
         response = await run_shell_process(command, process_returns_code_1_even_though_success)
     except BaseShellProcessException as e:
-        raise find_error(e.response.json_success_output(), e.response.decoded_error_output())
+        raise find_exception(e.response.json_success_output(), e.response.decoded_error_output())
 
     return response
 

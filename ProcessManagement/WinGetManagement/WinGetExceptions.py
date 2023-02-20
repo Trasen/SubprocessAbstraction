@@ -55,7 +55,7 @@ class ApplicationAlreadyInstalled(WingetSoftException):
         super(ApplicationAlreadyInstalled, self).__init__("Application " + "".join(command.args) + " is already installed", command, response)
 
 
-def _get_all_hard_exceptions() -> [int, WingetHardException]:
+def get_all_hard_exceptions() -> [int, WingetHardException]:
     errors: [int, BaseException] = {}
 
     for cls in WingetHardException.__subclasses__():
@@ -64,15 +64,10 @@ def _get_all_hard_exceptions() -> [int, WingetHardException]:
     return errors
 
 
-def _get_all_soft_exceptions() -> [int, WingetSoftException]:
+def get_all_soft_exceptions() -> [int, WingetSoftException]:
     errors: [int, BaseException] = {}
 
     for cls in WingetSoftException.__subclasses__():
         errors.__setitem__(cls.code, cls)
 
     return errors
-
-
-hard_exceptions: [int, WingetHardException] = _get_all_hard_exceptions()
-soft_exceptions: [int, WingetHardException] = _get_all_soft_exceptions()
-

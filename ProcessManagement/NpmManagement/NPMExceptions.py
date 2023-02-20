@@ -1,7 +1,7 @@
 import json
 
 
-class NpmError(BaseException):
+class NpmException(BaseException):
     code = "NOT_YET_IMPLEMENTED_ERROR"
 
     def __init__(self, raw_text: str, json_data: json):
@@ -9,36 +9,33 @@ class NpmError(BaseException):
         self.json_data: json = json_data
 
 
-class NoPackageLock(NpmError):
+class NoPackageLock(NpmException):
     code = 'EUSAGE'
 
     def __init__(self, summary: str):
         self.summary = summary
 
 
-class NoSuchFileOrDirectory(NpmError):
+class NoSuchFileOrDirectory(NpmException):
     code = 'ENOENT'
 
     def __init__(self, summary: str):
         self.summary = summary
 
 
-def _get_all_npm_errors() -> [str, NpmError]:
+def _get_all_npm_exceptions() -> [str, NpmException]:
     errors: [str, BaseException] = {}
 
-    for cls in NpmError.__subclasses__():
+    for cls in NpmException.__subclasses__():
         errors.__setitem__(cls.code, cls)
 
     return errors
 
 
-error_dictionary: [str, NpmError] = _get_all_npm_errors()
-
-
-def find_error(data: json, raw_text: str) -> NpmError or None:
+def find_exception(data: json, raw_text: str) -> NpmException or None:
     code: str = ""
     summary: str = ""
-    error: NpmError = None
+    error: NpmException = None
     if data:
         try:
             code = data['error']["code"]
@@ -51,8 +48,8 @@ def find_error(data: json, raw_text: str) -> NpmError or None:
         code = line_split[1].split(" ")[1]
         summary = raw_text
     try:
-        error = error_dictionary[code](summary)
+        error = _get_all_npm_exceptions()[code](summary)
     except KeyError:
-        raise NpmError(data, raw_text)
+        raise NpmException(data, raw_text)
 
     return error

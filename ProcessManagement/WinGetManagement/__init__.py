@@ -1,26 +1,29 @@
+import asyncio
+
 from ProcessManagement import run_shell_process, ShellProcessCommand, ProcessResponse
 from ProcessManagement.WinGetManagement.WinGetExceptions import MultiplePackagesFound, NoPackagesFound, \
     NoPackageNameEntered, \
-    ApplicationAlreadyInstalled, hard_exceptions, soft_exceptions
+    ApplicationAlreadyInstalled, WingetSoftException, get_all_soft_exceptions, get_all_hard_exceptions
 from ProcessManagement.WinGetManagement.WinGetExceptions import MultiplePackagesFound, NoPackagesFound, \
     NoPackageNameEntered, ApplicationAlreadyInstalled
 
 
 class WingetCommand(ShellProcessCommand):
-    def __init__(self, command: str, args:[str], trailing_flags: [str]):
-        super(WingetCommand, self).__init__(application="winget", command=command, args=args, trailing_flags=trailing_flags)
+    def __init__(self, command: str, args: [str], trailing_flags: [str]):
+        super(WingetCommand, self).__init__(application="winget", command=command, args=args,
+                                            trailing_flags=trailing_flags)
 
 
 async def handle_exception(command: ShellProcessCommand, response: ProcessResponse, silent_fail_on_soft_errors: bool):
     if not silent_fail_on_soft_errors:
         try:
-            exception = soft_exceptions[response.return_code]
+            exception = get_all_soft_exceptions()[response.return_code]
             raise exception(command, response)
         except KeyError:
             pass
 
     try:
-        exception = hard_exceptions[response.return_code]
+        exception = get_all_hard_exceptions()[response.return_code]
         raise exception(command, response)
     except KeyError:
         pass
@@ -39,7 +42,7 @@ async def winget_install(application_name: str, silent_fail_on_soft_errors: bool
         "--accept-package-agreements",
         "--accept-source-agreements",
         "--disable-interactivity"]
-                                  )
+                            )
     response = await winget(command, silent_fail_on_soft_errors)
 
     return response
@@ -53,6 +56,7 @@ async def winget_uninstall(application_name: str):
     command = WingetCommand(command="uninstall", args=[application_name], trailing_flags=[
         "--silent",
         "--accept-source-agreements"]
-                                  )
+                            )
 
     return await winget(command, False)
+
